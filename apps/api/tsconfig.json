@@ -1,0 +1,10 @@
+{
+  "extends": "@skilledclaws/ts-config/node.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "module": "ESNext",
+    "moduleResolution": "NodeNext"
+  },
+  "include": ["src"]
+}
