@@ -1,4 +1,4 @@
-export { SkillBuilder, HUGE_INPUT_THRESHOLD } from "./builder";
+export { SkillBuilder, HUGE_INPUT_THRESHOLD, renderSkillMd } from "./builder";
 export type { ZipEntry } from "./builder";
 export { skillManifestSchema, skillBuildInputSchema } from "./schema";
 export type {

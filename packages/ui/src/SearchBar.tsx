@@ -53,11 +53,22 @@ export function SearchBar({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         className={clsx(
-          "w-full rounded-lg border bg-surface/80 px-4 py-3 text-text placeholder-muted",
-          "backdrop-blur-sm outline-none transition-colors",
-          "focus:border-accent/50 focus:ring-1 focus:ring-accent/20",
-          isOverLimit && "border-red-500/50 focus:border-red-500/50"
+          "w-full",
+          "bg-[#000000]",
+          "border border-[#1a1a1a]",
+          "px-4 py-3",
+          "text-[#f5f5f5]",
+          "placeholder-[#666666]",
+          "text-sm",
+          "outline-none",
+          "transition-all duration-150",
+          "focus:border-[#2a2a2a]",
+          "hover:border-[#1f1f1f]",
+          isOverLimit && "border-[#2a2a2a] focus:border-[#2a2a2a]"
         )}
+        style={{ 
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        }}
         aria-invalid={isOverLimit}
         aria-describedby={isOverLimit ? "search-word-count" : undefined}
         {...rest}
@@ -65,8 +76,8 @@ export function SearchBar({
       <span
         id="search-word-count"
         className={clsx(
-          "absolute right-3 top-1/2 -translate-y-1/2 text-xs tabular-nums",
-          isOverLimit ? "text-red-400" : "text-muted"
+          "absolute right-4 top-1/2 -translate-y-1/2 text-[10px] tabular-nums uppercase tracking-wider font-medium",
+          isOverLimit ? "text-[#a0a0a0]" : "text-[#666666]"
         )}
       >
         {wordCount}/{maxWords}

@@ -8,8 +8,8 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#1a1a1a",
-        surface: "#242424",
+        background: "#000000",
+        surface: "#1a1a1a",
         border: "#333333",
         text: "#e0e0e0",
         muted: "#888888",

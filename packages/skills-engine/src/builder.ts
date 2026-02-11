@@ -115,29 +115,88 @@ Use these phrases when you want this skill to activate:
 {{/each}}
 `;
 
-function renderSkillMd(input: SkillBuildInput, version: string): string {
+export function renderSkillMd(input: SkillBuildInput, version: string): string {
   const lines: string[] = [];
+  
+  // YAML frontmatter (matching awesome-claude-skills format)
+  lines.push("---");
+  lines.push(`name: ${input.skillName}`);
+  lines.push(`description: "${input.description.replace(/"/g, '\\"')}"`);
+  lines.push("---");
+  lines.push("");
+  
+  // Main title
   lines.push(`# ${input.skillName}`);
   lines.push("");
   lines.push(input.description);
   lines.push("");
-  lines.push("## Trigger phrases");
-  lines.push("");
-  lines.push("Use these phrases when you want this skill to activate:");
-  lines.push("");
-  for (const t of input.triggers) {
-    lines.push(`- ${t}`);
+
+  // Prerequisites section (if applicable)
+  if (input.strategies.some((s) => s.title.toLowerCase().includes("prerequisite"))) {
+    lines.push("## Prerequisites");
+    lines.push("");
+    const prereq = input.strategies.find((s) => s.title.toLowerCase().includes("prerequisite"));
+    if (prereq) {
+      lines.push(prereq.content);
+      lines.push("");
+    }
   }
-  lines.push("");
+
+  // Setup section (if applicable)
+  if (input.strategies.some((s) => s.title.toLowerCase().includes("setup"))) {
+    lines.push("## Setup");
+    lines.push("");
+    const setup = input.strategies.find((s) => s.title.toLowerCase().includes("setup"));
+    if (setup) {
+      lines.push(setup.content);
+      lines.push("");
+    }
+  }
+
+  // Core Workflows section
+  const workflows = input.strategies.filter(
+    (s) => !s.title.toLowerCase().includes("prerequisite") && !s.title.toLowerCase().includes("setup")
+  );
+
+  if (workflows.length > 0) {
+    lines.push("## Core Workflows");
+    lines.push("");
+    lines.push("These workflows provide step-by-step guidance for common tasks:");
+    lines.push("");
+    
+    workflows.forEach((strategy, idx) => {
+      lines.push(`### ${idx + 1}. ${strategy.title}`);
+      lines.push("");
+      // Preserve markdown formatting in strategy content
+      lines.push(strategy.content);
+      lines.push("");
+      
+      // Add separator between workflows (except last one)
+      if (idx < workflows.length - 1) {
+        lines.push("---");
+        lines.push("");
+      }
+    });
+  }
+
+  // Trigger phrases (if not already in workflows)
+  if (input.triggers.length > 0) {
+    lines.push("## Trigger Phrases");
+    lines.push("");
+    lines.push("Use these phrases when you want this skill to activate:");
+    lines.push("");
+    for (const t of input.triggers) {
+      lines.push(`- ${t}`);
+    }
+    lines.push("");
+  }
+
+  // Version
   lines.push("## Version");
   lines.push("");
   lines.push(version);
   lines.push("");
-  lines.push("## Layers");
-  lines.push("");
-  lines.push("- **Scripts**: Executable logic for this skill");
-  lines.push("- **References**: Common strategies and successful patterns");
-  lines.push("- **Assets**: Prompt templates and JSON schemas");
+
   return lines.join("\n");
 }
 
@@ -167,17 +226,26 @@ export class SkillBuilder {
         chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as string));
         cb();
       },
+      final(cb) {
+        cb();
+      },
     });
+    
     archive.pipe(collector);
+    
     for (const e of entries) {
       archive.append(e.buffer, { name: e.path });
     }
-    await archive.finalize();
 
     return new Promise((resolve, reject) => {
-      collector.on("finish", () => resolve(Buffer.concat(chunks)));
       archive.on("error", reject);
       collector.on("error", reject);
+      
+      collector.on("finish", () => {
+        resolve(Buffer.concat(chunks));
+      });
+
+      archive.finalize().catch(reject);
     });
   }
 

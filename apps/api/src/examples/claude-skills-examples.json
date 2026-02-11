@@ -1,0 +1,506 @@
+[
+  {
+    "skillName": "activecampaign-automation",
+    "description": "Automate ActiveCampaign tasks via Rube MCP (Composio): manage contacts, tags, list subscriptions, automation enrollment, and tasks. Always search tools first for current schemas.",
+    "triggers": [
+      "activecampaign-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active ActiveCampaign connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `active_campaign`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `active_campaign`\n3. If connection is not ACTIVE, follow the returned auth link to complete ActiveCampaign authentication\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. Create and Find Contacts",
+        "content": "**When to use**: User wants to create new contacts or look up existing ones\n\n**Tool sequence**:\n1. `ACTIVE_CAMPAIGN_FIND_CONTACT` - Search for an existing contact [Optional]\n2. `ACTIVE_CAMPAIGN_CREATE_CONTACT` - Create a new contact [Required]\n\n**Key parameters for find**:\n- `email`: Search by email address\n- `id`: Search by ActiveCampaign contact ID\n- `phone`: Search by phone number\n\n**Key parameters for create**:\n- `email`: Contact email address (required)\n- `first_name`: Contact first name\n- "
+      },
+      {
+        "title": "2. Manage Contact Tags",
+        "content": "**When to use**: User wants to add or remove tags from contacts\n\n**Tool sequence**:\n1. `ACTIVE_CAMPAIGN_FIND_CONTACT` - Find contact by email or ID [Prerequisite]\n2. `ACTIVE_CAMPAIGN_MANAGE_CONTACT_TAG` - Add or remove tags [Required]\n\n**Key parameters**:\n- `action`: 'Add' or 'Remove' (required)\n- `tags`: Tag names as comma-separated string or array of strings (required)\n- `contact_id`: Contact ID (provide this or contact_email)\n- `contact_email`: Contact email address (alternative to contact_id"
+      }
+    ]
+  },
+  {
+    "skillName": "airtable-automation",
+    "description": "Automate Airtable tasks via Rube MCP (Composio): records, bases, tables, fields, views. Always search tools first for current schemas.",
+    "triggers": [
+      "airtable-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active Airtable connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `airtable`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `airtable`\n3. If connection is not ACTIVE, follow the returned auth link to complete Airtable auth\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. Create and Manage Records",
+        "content": "**When to use**: User wants to create, read, update, or delete records\n\n**Tool sequence**:\n1. `AIRTABLE_LIST_BASES` - Discover available bases [Prerequisite]\n2. `AIRTABLE_GET_BASE_SCHEMA` - Inspect table structure [Prerequisite]\n3. `AIRTABLE_LIST_RECORDS` - List/filter records [Optional]\n4. `AIRTABLE_CREATE_RECORD` / `AIRTABLE_CREATE_RECORDS` - Create records [Optional]\n5. `AIRTABLE_UPDATE_RECORD` / `AIRTABLE_UPDATE_MULTIPLE_RECORDS` - Update records [Optional]\n6. `AIRTABLE_DELETE_RECORD` / `AIR"
+      },
+      {
+        "title": "2. Search and Filter Records",
+        "content": "**When to use**: User wants to find specific records using formulas\n\n**Tool sequence**:\n1. `AIRTABLE_GET_BASE_SCHEMA` - Verify field names and types [Prerequisite]\n2. `AIRTABLE_LIST_RECORDS` - Query with filterByFormula [Required]\n3. `AIRTABLE_GET_RECORD` - Get full record details [Optional]\n\n**Key parameters**:\n- `filterByFormula`: Airtable formula (e.g., `{Status}='Done'`)\n- `sort`: Array of sort objects\n- `fields`: Array of field names to return\n- `maxRecords`: Max total records across all pa"
+      }
+    ]
+  },
+  {
+    "skillName": "amplitude-automation",
+    "description": "Automate Amplitude tasks via Rube MCP (Composio): events, user activity, cohorts, user identification. Always search tools first for current schemas.",
+    "triggers": [
+      "amplitude-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active Amplitude connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `amplitude`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `amplitude`\n3. If connection is not ACTIVE, follow the returned auth link to complete Amplitude authentication\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. Send Events",
+        "content": "**When to use**: User wants to track events or send event data to Amplitude\n\n**Tool sequence**:\n1. `AMPLITUDE_SEND_EVENTS` - Send one or more events to Amplitude [Required]\n\n**Key parameters**:\n- `events`: Array of event objects, each containing:\n  - `event_type`: Name of the event (e.g., 'page_view', 'purchase')\n  - `user_id`: Unique user identifier (required if no `device_id`)\n  - `device_id`: Device identifier (required if no `user_id`)\n  - `event_properties`: Object with custom event propert"
+      },
+      {
+        "title": "2. Get User Activity",
+        "content": "**When to use**: User wants to view event history for a specific user\n\n**Tool sequence**:\n1. `AMPLITUDE_FIND_USER` - Find user by ID or property [Prerequisite]\n2. `AMPLITUDE_GET_USER_ACTIVITY` - Retrieve user's event stream [Required]\n\n**Key parameters**:\n- `user`: Amplitude internal user ID (from FIND_USER)\n- `offset`: Pagination offset for event list\n- `limit`: Maximum number of events to return\n\n**Pitfalls**:\n- `user` parameter requires Amplitude's internal user ID, NOT your application's use"
+      }
+    ]
+  },
+  {
+    "skillName": "artifacts-builder",
+    "description": "Suite of tools for creating elaborate, multi-component claude.ai HTML artifacts using modern frontend web technologies (React, Tailwind CSS, shadcn/ui). Use for complex artifacts requiring state management, routing, or shadcn/ui components - not for simple single-file HTML/JSX artifacts.",
+    "triggers": [
+      "artifacts-builder"
+    ],
+    "strategies": [
+      {
+        "title": "Design & Style Guidelines",
+        "content": "VERY IMPORTANT: To avoid what is often referred to as \"AI slop\", avoid using excessive centered layouts, purple gradients, uniform rounded corners, and Inter font."
+      },
+      {
+        "title": "Step 1: Initialize Project",
+        "content": "Run the initialization script to create a new React project:\n```bash\nbash scripts/init-artifact.sh <project-name>\ncd <project-name>\n```\n\nThis creates a fully configured project with:\n- ✅ React + TypeScript (via Vite)\n- ✅ Tailwind CSS 3.4.1 with shadcn/ui theming system\n- ✅ Path aliases (`@/`) configured\n- ✅ 40+ shadcn/ui components pre-installed\n- ✅ All Radix UI dependencies included\n- ✅ Parcel configured for bundling (via .parcelrc)\n- ✅ Node 18+ compatibility (auto-detects and pins Vite version"
+      },
+      {
+        "title": "Step 2: Develop Your Artifact",
+        "content": "To build the artifact, edit the generated files. See **Common Development Tasks** below for guidance."
+      },
+      {
+        "title": "Step 3: Bundle to Single HTML File",
+        "content": "To bundle the React app into a single HTML artifact:\n```bash\nbash scripts/bundle-artifact.sh\n```\n\nThis creates `bundle.html` - a self-contained artifact with all JavaScript, CSS, and dependencies inlined. This file can be directly shared in Claude conversations as an artifact.\n\n**Requirements**: Your project must have an `index.html` in the root directory.\n\n**What the script does**:\n- Installs bundling dependencies (parcel, @parcel/config-default, parcel-resolver-tspaths, html-inline)\n- Creates "
+      }
+    ]
+  },
+  {
+    "skillName": "asana-automation",
+    "description": "Automate Asana tasks via Rube MCP (Composio): tasks, projects, sections, teams, workspaces. Always search tools first for current schemas.",
+    "triggers": [
+      "asana-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active Asana connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `asana`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `asana`\n3. If connection is not ACTIVE, follow the returned auth link to complete Asana OAuth\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. Manage Tasks",
+        "content": "**When to use**: User wants to create, search, list, or organize tasks\n\n**Tool sequence**:\n1. `ASANA_GET_MULTIPLE_WORKSPACES` - Get workspace ID [Prerequisite]\n2. `ASANA_SEARCH_TASKS_IN_WORKSPACE` - Search tasks [Optional]\n3. `ASANA_GET_TASKS_FROM_A_PROJECT` - List project tasks [Optional]\n4. `ASANA_CREATE_A_TASK` - Create a new task [Optional]\n5. `ASANA_GET_A_TASK` - Get task details [Optional]\n6. `ASANA_CREATE_SUBTASK` - Create a subtask [Optional]\n7. `ASANA_GET_TASK_SUBTASKS` - List subtasks "
+      },
+      {
+        "title": "2. Manage Projects and Sections",
+        "content": "**When to use**: User wants to create projects, manage sections, or organize tasks\n\n**Tool sequence**:\n1. `ASANA_GET_WORKSPACE_PROJECTS` - List workspace projects [Optional]\n2. `ASANA_GET_A_PROJECT` - Get project details [Optional]\n3. `ASANA_CREATE_A_PROJECT` - Create a new project [Optional]\n4. `ASANA_GET_SECTIONS_IN_PROJECT` - List sections [Optional]\n5. `ASANA_CREATE_SECTION_IN_PROJECT` - Create a new section [Optional]\n6. `ASANA_ADD_TASK_TO_SECTION` - Move task to section [Optional]\n7. `ASAN"
+      }
+    ]
+  },
+  {
+    "skillName": "bamboohr-automation",
+    "description": "Automate BambooHR tasks via Rube MCP (Composio): employees, time-off, benefits, dependents, employee updates. Always search tools first for current schemas.",
+    "triggers": [
+      "bamboohr-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active BambooHR connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `bamboohr`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `bamboohr`\n3. If connection is not ACTIVE, follow the returned auth link to complete BambooHR authentication\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. List and Search Employees",
+        "content": "**When to use**: User wants to find employees or get the full employee directory\n\n**Tool sequence**:\n1. `BAMBOOHR_GET_ALL_EMPLOYEES` - Get the employee directory [Required]\n2. `BAMBOOHR_GET_EMPLOYEE` - Get detailed info for a specific employee [Optional]\n\n**Key parameters**:\n- For GET_ALL_EMPLOYEES: No required parameters; returns directory\n- For GET_EMPLOYEE:\n  - `id`: Employee ID (numeric)\n  - `fields`: Comma-separated list of fields to return (e.g., 'firstName,lastName,department,jobTitle')\n\n"
+      },
+      {
+        "title": "2. Track Employee Changes",
+        "content": "**When to use**: User wants to detect recent employee data changes for sync or auditing\n\n**Tool sequence**:\n1. `BAMBOOHR_EMPLOYEE_GET_CHANGED` - Get employees with recent changes [Required]\n\n**Key parameters**:\n- `since`: ISO 8601 datetime string for change detection threshold\n- `type`: Type of changes to check (e.g., 'inserted', 'updated', 'deleted')\n\n**Pitfalls**:\n- `since` parameter is required; use ISO 8601 format (e.g., '2024-01-15T00:00:00Z')\n- Returns IDs of changed employees, not full em"
+      }
+    ]
+  },
+  {
+    "skillName": "basecamp-automation",
+    "description": "Automate Basecamp project management, to-dos, messages, people, and to-do list organization via Rube MCP (Composio). Always search tools first for current schemas.",
+    "triggers": [
+      "basecamp-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active Basecamp connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `basecamp`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `basecamp`\n3. If connection is not ACTIVE, follow the returned auth link to complete Basecamp OAuth\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. Manage To-Do Lists and Tasks",
+        "content": "**When to use**: User wants to create to-do lists, add tasks, or organize work within a Basecamp project\n\n**Tool sequence**:\n1. `BASECAMP_GET_PROJECTS` - List projects to find the target bucket_id [Prerequisite]\n2. `BASECAMP_GET_BUCKETS_TODOSETS` - Get the to-do set within a project [Prerequisite]\n3. `BASECAMP_GET_BUCKETS_TODOSETS_TODOLISTS` - List existing to-do lists to avoid duplicates [Optional]\n4. `BASECAMP_POST_BUCKETS_TODOSETS_TODOLISTS` - Create a new to-do list in a to-do set [Required "
+      },
+      {
+        "title": "2. Post and Manage Messages",
+        "content": "**When to use**: User wants to post messages to a project message board or update existing messages\n\n**Tool sequence**:\n1. `BASECAMP_GET_PROJECTS` - Find the target project and bucket_id [Prerequisite]\n2. `BASECAMP_GET_MESSAGE_BOARD` - Get the message board ID for the project [Prerequisite]\n3. `BASECAMP_CREATE_MESSAGE` - Create a new message on the board [Required]\n4. `BASECAMP_POST_BUCKETS_MESSAGE_BOARDS_MESSAGES` - Alternative message creation tool [Fallback]\n5. `BASECAMP_GET_MESSAGE` - Read a"
+      }
+    ]
+  },
+  {
+    "skillName": "bitbucket-automation",
+    "description": "Automate Bitbucket repositories, pull requests, branches, issues, and workspace management via Rube MCP (Composio). Always search tools first for current schemas.",
+    "triggers": [
+      "bitbucket-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active Bitbucket connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `bitbucket`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `bitbucket`\n3. If connection is not ACTIVE, follow the returned auth link to complete Bitbucket OAuth\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. Manage Pull Requests",
+        "content": "**When to use**: User wants to create, review, or inspect pull requests\n\n**Tool sequence**:\n1. `BITBUCKET_LIST_WORKSPACES` - Discover accessible workspaces [Prerequisite]\n2. `BITBUCKET_LIST_REPOSITORIES_IN_WORKSPACE` - Find the target repository [Prerequisite]\n3. `BITBUCKET_LIST_BRANCHES` - Verify source and destination branches exist [Prerequisite]\n4. `BITBUCKET_CREATE_PULL_REQUEST` - Create a new PR with title, source branch, and optional reviewers [Required]\n5. `BITBUCKET_LIST_PULL_REQUESTS` "
+      },
+      {
+        "title": "2. Manage Repositories and Workspaces",
+        "content": "**When to use**: User wants to list, create, or delete repositories or explore workspaces\n\n**Tool sequence**:\n1. `BITBUCKET_LIST_WORKSPACES` - List all accessible workspaces [Required]\n2. `BITBUCKET_LIST_REPOSITORIES_IN_WORKSPACE` - List repos with optional BBQL filtering [Required]\n3. `BITBUCKET_CREATE_REPOSITORY` - Create a new repo with language, privacy, and project settings [Optional]\n4. `BITBUCKET_DELETE_REPOSITORY` - Permanently delete a repository (irreversible) [Optional]\n5. `BITBUCKET_"
+      }
+    ]
+  },
+  {
+    "skillName": "box-automation",
+    "description": "Automate Box cloud storage operations including file upload/download, search, folder management, sharing, collaborations, and metadata queries via Rube MCP (Composio). Always search tools first for current schemas.",
+    "triggers": [
+      "box-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active Box connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `box`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `box`\n3. If connection is not ACTIVE, follow the returned auth link to complete Box OAuth\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. Upload and Download Files",
+        "content": "**When to use**: User wants to upload files to Box or download files from it\n\n**Tool sequence**:\n1. `BOX_SEARCH_FOR_CONTENT` - Find the target folder if path is unknown [Prerequisite]\n2. `BOX_GET_FOLDER_INFORMATION` - Verify folder exists and get folder_id [Prerequisite]\n3. `BOX_LIST_ITEMS_IN_FOLDER` - Browse folder contents and discover file IDs [Optional]\n4. `BOX_UPLOAD_FILE` - Upload a file to a specific folder [Required for upload]\n5. `BOX_DOWNLOAD_FILE` - Download a file by file_id [Require"
+      },
+      {
+        "title": "2. Search and Browse Content",
+        "content": "**When to use**: User wants to find files, folders, or web links by name, content, or metadata\n\n**Tool sequence**:\n1. `BOX_SEARCH_FOR_CONTENT` - Full-text search across files, folders, and web links [Required]\n2. `BOX_LIST_ITEMS_IN_FOLDER` - Browse contents of a specific folder [Optional]\n3. `BOX_GET_FILE_INFORMATION` - Get detailed metadata for a specific file [Optional]\n4. `BOX_GET_FOLDER_INFORMATION` - Get detailed metadata for a specific folder [Optional]\n5. `BOX_QUERY_FILES_FOLDERS_BY_METAD"
+      }
+    ]
+  },
+  {
+    "skillName": "brand-guidelines",
+    "description": "Applies Anthropic's official brand colors and typography to any sort of artifact that may benefit from having Anthropic's look-and-feel. Use it when brand colors or style guidelines, visual formatting, or company design standards apply.",
+    "triggers": [
+      "brand-guidelines"
+    ],
+    "strategies": [
+      {
+        "title": "Overview",
+        "content": "To access Anthropic's official brand identity and style resources, use this skill.\n\n**Keywords**: branding, corporate identity, visual identity, post-processing, styling, brand colors, typography, Anthropic brand, visual formatting, visual design"
+      },
+      {
+        "title": "Colors",
+        "content": "**Main Colors:**\n\n- Dark: `#141413` - Primary text and dark backgrounds\n- Light: `#faf9f5` - Light backgrounds and text on dark\n- Mid Gray: `#b0aea5` - Secondary elements\n- Light Gray: `#e8e6dc` - Subtle backgrounds\n\n**Accent Colors:**\n\n- Orange: `#d97757` - Primary accent\n- Blue: `#6a9bcc` - Secondary accent\n- Green: `#788c5d` - Tertiary accent"
+      },
+      {
+        "title": "Typography",
+        "content": "- **Headings**: Poppins (with Arial fallback)\n- **Body Text**: Lora (with Georgia fallback)\n- **Note**: Fonts should be pre-installed in your environment for best results"
+      },
+      {
+        "title": "Smart Font Application",
+        "content": "- Applies Poppins font to headings (24pt and larger)\n- Applies Lora font to body text\n- Automatically falls back to Arial/Georgia if custom fonts unavailable\n- Preserves readability across all systems"
+      }
+    ]
+  },
+  {
+    "skillName": "brevo-automation",
+    "description": "Automate Brevo (Sendinblue) tasks via Rube MCP (Composio): manage email campaigns, create/edit templates, track senders, and monitor campaign performance. Always search tools first for current schemas.",
+    "triggers": [
+      "brevo-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active Brevo connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `brevo`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `brevo`\n3. If connection is not ACTIVE, follow the returned auth link to complete Brevo authentication\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. Manage Email Campaigns",
+        "content": "**When to use**: User wants to list, review, or update email campaigns\n\n**Tool sequence**:\n1. `BREVO_LIST_EMAIL_CAMPAIGNS` - List all campaigns with filters [Required]\n2. `BREVO_UPDATE_EMAIL_CAMPAIGN` - Update campaign content or settings [Optional]\n\n**Key parameters for listing**:\n- `type`: Campaign type ('classic' or 'trigger')\n- `status`: Campaign status ('suspended', 'archive', 'sent', 'queued', 'draft', 'inProcess', 'inReview')\n- `startDate`/`endDate`: Date range filter (YYYY-MM-DDTHH:mm:ss"
+      },
+      {
+        "title": "2. Create and Manage Email Templates",
+        "content": "**When to use**: User wants to create, edit, list, or delete email templates\n\n**Tool sequence**:\n1. `BREVO_GET_ALL_EMAIL_TEMPLATES` - List all templates [Required]\n2. `BREVO_CREATE_OR_UPDATE_EMAIL_TEMPLATE` - Create a new template or update existing [Required]\n3. `BREVO_DELETE_EMAIL_TEMPLATE` - Delete an inactive template [Optional]\n\n**Key parameters for listing**:\n- `templateStatus`: Filter active (`true`) or inactive (`false`) templates\n- `limit`: Results per page (max 1000, default 50)\n- `off"
+      }
+    ]
+  },
+  {
+    "skillName": "cal-com-automation",
+    "description": "Automate Cal.com tasks via Rube MCP (Composio): manage bookings, check availability, configure webhooks, and handle teams. Always search tools first for current schemas.",
+    "triggers": [
+      "cal-com-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active Cal.com connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `cal`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `cal`\n3. If connection is not ACTIVE, follow the returned auth link to complete Cal.com authentication\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. Manage Bookings",
+        "content": "**When to use**: User wants to list, create, or review bookings\n\n**Tool sequence**:\n1. `CAL_FETCH_ALL_BOOKINGS` - List all bookings with filters [Required]\n2. `CAL_POST_NEW_BOOKING_REQUEST` - Create a new booking [Optional]\n\n**Key parameters for listing**:\n- `status`: Filter by booking status ('upcoming', 'recurring', 'past', 'cancelled', 'unconfirmed')\n- `afterStart`: Filter bookings after this date (ISO 8601)\n- `beforeEnd`: Filter bookings before this date (ISO 8601)\n\n**Key parameters for crea"
+      },
+      {
+        "title": "2. Check Availability",
+        "content": "**When to use**: User wants to find free/busy times or available booking slots\n\n**Tool sequence**:\n1. `CAL_RETRIEVE_CALENDAR_BUSY_TIMES` - Get busy time blocks [Required]\n2. `CAL_GET_AVAILABLE_SLOTS_INFO` - Get specific available slots [Required]\n\n**Key parameters**:\n- `dateFrom`: Start date for availability check (YYYY-MM-DD)\n- `dateTo`: End date for availability check (YYYY-MM-DD)\n- `eventTypeId`: Event type to check slots for\n- `timeZone`: Timezone for the availability response\n- `loggedInUse"
+      }
+    ]
+  },
+  {
+    "skillName": "calendly-automation",
+    "description": "Automate Calendly scheduling, event management, invitee tracking, availability checks, and organization administration via Rube MCP (Composio). Always search tools first for current schemas.",
+    "triggers": [
+      "calendly-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active Calendly connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `calendly`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas\n- Many operations require the user's Calendly URI, obtained via `CALENDLY_GET_CURRENT_USER`"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `calendly`\n3. If connection is not ACTIVE, follow the returned auth link to complete Calendly OAuth\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. List and View Scheduled Events",
+        "content": "**When to use**: User wants to see their upcoming, past, or filtered Calendly events\n\n**Tool sequence**:\n1. `CALENDLY_GET_CURRENT_USER` - Get authenticated user URI and organization URI [Prerequisite]\n2. `CALENDLY_LIST_EVENTS` - List events scoped by user, organization, or group [Required]\n3. `CALENDLY_GET_EVENT` - Get detailed info for a specific event by UUID [Optional]\n\n**Key parameters**:\n- `user`: Full Calendly API URI (e.g., `https://api.calendly.com/users/{uuid}`) - NOT `\"me\"`\n- `organiza"
+      },
+      {
+        "title": "2. Manage Event Invitees",
+        "content": "**When to use**: User wants to see who is booked for events or get invitee details\n\n**Tool sequence**:\n1. `CALENDLY_LIST_EVENTS` - Find the target event(s) [Prerequisite]\n2. `CALENDLY_LIST_EVENT_INVITEES` - List all invitees for a specific event [Required]\n3. `CALENDLY_GET_EVENT_INVITEE` - Get detailed info for a single invitee [Optional]\n\n**Key parameters**:\n- `uuid`: Event UUID (for `LIST_EVENT_INVITEES`)\n- `event_uuid` + `invitee_uuid`: Both required for `GET_EVENT_INVITEE`\n- `email`: Filter "
+      }
+    ]
+  },
+  {
+    "skillName": "canva-automation",
+    "description": "Automate Canva tasks via Rube MCP (Composio): designs, exports, folders, brand templates, autofill. Always search tools first for current schemas.",
+    "triggers": [
+      "canva-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active Canva connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `canva`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `canva`\n3. If connection is not ACTIVE, follow the returned auth link to complete Canva OAuth\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. List and Browse Designs",
+        "content": "**When to use**: User wants to find existing designs or browse their Canva library\n\n**Tool sequence**:\n1. `CANVA_LIST_USER_DESIGNS` - List all designs with optional filters [Required]\n\n**Key parameters**:\n- `query`: Search term to filter designs by name\n- `continuation`: Pagination token from previous response\n- `ownership`: Filter by 'owned', 'shared', or 'any'\n- `sort_by`: Sort field (e.g., 'modified_at', 'title')\n\n**Pitfalls**:\n- Results are paginated; follow `continuation` token until absent"
+      },
+      {
+        "title": "2. Create and Design",
+        "content": "**When to use**: User wants to create a new Canva design from scratch or from a template\n\n**Tool sequence**:\n1. `CANVA_ACCESS_USER_SPECIFIC_BRAND_TEMPLATES_LIST` - Browse available brand templates [Optional]\n2. `CANVA_CREATE_CANVA_DESIGN_WITH_OPTIONAL_ASSET` - Create a new design [Required]\n\n**Key parameters**:\n- `design_type`: Type of design (e.g., 'Presentation', 'Poster', 'SocialMedia')\n- `title`: Name for the new design\n- `asset_id`: Optional asset to include in the design\n- `width` / `heigh"
+      }
+    ]
+  },
+  {
+    "skillName": "canvas-design",
+    "description": "Create beautiful visual art in .png and .pdf documents using design philosophy. You should use this skill when the user asks to create a poster, piece of art, design, or other static piece. Create original visual designs, never copying existing artists' work to avoid copyright violations.",
+    "triggers": [
+      "canvas-design"
+    ],
+    "strategies": [
+      {
+        "title": "DESIGN PHILOSOPHY CREATION",
+        "content": "To begin, create a VISUAL PHILOSOPHY (not layouts or templates) that will be interpreted through:\n- Form, space, color, composition\n- Images, graphics, shapes, patterns\n- Minimal text as visual accent"
+      },
+      {
+        "title": "THE CRITICAL UNDERSTANDING",
+        "content": "- What is received: Some subtle input or instructions by the user that should be taken into account, but used as a foundation; it should not constrain creative freedom.\n- What is created: A design philosophy/aesthetic movement.\n- What happens next: Then, the same version receives the philosophy and EXPRESSES IT VISUALLY - creating artifacts that are 90% visual design, 10% essential text.\n\nConsider this approach:\n- Write a manifesto for an art movement\n- The next phase involves making the artwork"
+      },
+      {
+        "title": "HOW TO GENERATE A VISUAL PHILOSOPHY",
+        "content": "**Name the movement** (1-2 words): \"Brutalist Joy\" / \"Chromatic Silence\" / \"Metabolist Dreams\"\n\n**Articulate the philosophy** (4-6 paragraphs - concise but complete):\n\nTo capture the VISUAL essence, express how the philosophy manifests through:\n- Space and form\n- Color and material\n- Scale and rhythm\n- Composition and balance\n- Visual hierarchy\n\n**CRITICAL GUIDELINES:**\n- **Avoid redundancy**: Each design aspect should be mentioned once. Avoid repeating points about color theory, spatial relatio"
+      },
+      {
+        "title": "PHILOSOPHY EXAMPLES",
+        "content": "**\"Concrete Poetry\"**\nPhilosophy: Communication through monumental form and bold geometry.\nVisual expression: Massive color blocks, sculptural typography (huge single words, tiny labels), Brutalist spatial divisions, Polish poster energy meets Le Corbusier. Ideas expressed through visual weight and spatial tension, not explanation. Text as rare, powerful gesture - never paragraphs, only essential words integrated into the visual architecture. Every element placed with the precision of a master c"
+      }
+    ]
+  },
+  {
+    "skillName": "changelog-generator",
+    "description": "Automatically creates user-facing changelogs from git commits by analyzing commit history, categorizing changes, and transforming technical commits into clear, customer-friendly release notes. Turns hours of manual changelog writing into minutes of automated generation.",
+    "triggers": [
+      "Preparing release notes for a new version",
+      "Creating weekly or monthly product update summaries",
+      "Documenting changes for customers",
+      "Writing changelog entries for app store submissions",
+      "Generating update notifications"
+    ],
+    "strategies": [
+      {
+        "title": "When to Use This Skill",
+        "content": "- Preparing release notes for a new version\n- Creating weekly or monthly product update summaries\n- Documenting changes for customers\n- Writing changelog entries for app store submissions\n- Generating update notifications\n- Creating internal release documentation\n- Maintaining a public changelog/product updates page"
+      },
+      {
+        "title": "What This Skill Does",
+        "content": "1. **Scans Git History**: Analyzes commits from a specific time period or between versions\n2. **Categorizes Changes**: Groups commits into logical categories (features, improvements, bug fixes, breaking changes, security)\n3. **Translates Technical → User-Friendly**: Converts developer commits into customer language\n4. **Formats Professionally**: Creates clean, structured changelog entries\n5. **Filters Noise**: Excludes internal commits (refactoring, tests, etc.)\n6. **Follows Best Practices**: Ap"
+      },
+      {
+        "title": "Basic Usage",
+        "content": "From your project repository:\n\n```\nCreate a changelog from commits since last release\n```\n\n```\nGenerate changelog for all commits from the past week\n```\n\n```\nCreate release notes for version 2.5.0\n```"
+      },
+      {
+        "title": "With Specific Date Range",
+        "content": "```\nCreate a changelog for all commits between March 1 and March 15\n```"
+      }
+    ]
+  },
+  {
+    "skillName": "circleci-automation",
+    "description": "Automate CircleCI tasks via Rube MCP (Composio): trigger pipelines, monitor workflows/jobs, retrieve artifacts and test metadata. Always search tools first for current schemas.",
+    "triggers": [
+      "circleci-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active CircleCI connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `circleci`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `circleci`\n3. If connection is not ACTIVE, follow the returned auth link to complete CircleCI authentication\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. Trigger a Pipeline",
+        "content": "**When to use**: User wants to start a new CI/CD pipeline run\n\n**Tool sequence**:\n1. `CIRCLECI_TRIGGER_PIPELINE` - Trigger a new pipeline on a project [Required]\n2. `CIRCLECI_LIST_WORKFLOWS_BY_PIPELINE_ID` - Monitor resulting workflows [Optional]\n\n**Key parameters**:\n- `project_slug`: Project identifier in format `gh/org/repo` or `bb/org/repo`\n- `branch`: Git branch to run the pipeline on\n- `tag`: Git tag to run the pipeline on (mutually exclusive with branch)\n- `parameters`: Pipeline parameter "
+      },
+      {
+        "title": "2. Monitor Pipelines and Workflows",
+        "content": "**When to use**: User wants to check the status of pipelines or workflows\n\n**Tool sequence**:\n1. `CIRCLECI_LIST_PIPELINES_FOR_PROJECT` - List recent pipelines for a project [Required]\n2. `CIRCLECI_LIST_WORKFLOWS_BY_PIPELINE_ID` - List workflows within a pipeline [Required]\n3. `CIRCLECI_GET_PIPELINE_CONFIG` - View the pipeline configuration used [Optional]\n\n**Key parameters**:\n- `project_slug`: Project identifier in `{vcs}/{org}/{repo}` format\n- `pipeline_id`: UUID of a specific pipeline\n- `branc"
+      }
+    ]
+  },
+  {
+    "skillName": "clickup-automation",
+    "description": "Automate ClickUp project management including tasks, spaces, folders, lists, comments, and team operations via Rube MCP (Composio). Always search tools first for current schemas.",
+    "triggers": [
+      "clickup-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active ClickUp connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `clickup`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `clickup`\n3. If connection is not ACTIVE, follow the returned auth link to complete ClickUp OAuth\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. Create and Manage Tasks",
+        "content": "**When to use**: User wants to create tasks, subtasks, update task properties, or list tasks in a ClickUp list.\n\n**Tool sequence**:\n1. `CLICKUP_GET_AUTHORIZED_TEAMS_WORKSPACES` - Get workspace/team IDs [Prerequisite]\n2. `CLICKUP_GET_SPACES` - List spaces in the workspace [Prerequisite]\n3. `CLICKUP_GET_FOLDERS` - List folders in a space [Prerequisite]\n4. `CLICKUP_GET_FOLDERLESS_LISTS` - Get lists not inside folders [Optional]\n5. `CLICKUP_GET_LIST` - Validate list and check available statuses [Pre"
+      },
+      {
+        "title": "2. Navigate Workspace Hierarchy",
+        "content": "**When to use**: User wants to browse or manage the ClickUp workspace structure (Workspaces > Spaces > Folders > Lists).\n\n**Tool sequence**:\n1. `CLICKUP_GET_AUTHORIZED_TEAMS_WORKSPACES` - List all accessible workspaces [Required]\n2. `CLICKUP_GET_SPACES` - List spaces within a workspace [Required]\n3. `CLICKUP_GET_SPACE` - Get details for a specific space [Optional]\n4. `CLICKUP_GET_FOLDERS` - List folders in a space [Required]\n5. `CLICKUP_GET_FOLDER` - Get details for a specific folder [Optional]\n"
+      }
+    ]
+  },
+  {
+    "skillName": "close-automation",
+    "description": "Automate Close CRM tasks via Rube MCP (Composio): create leads, manage calls/SMS, handle tasks, and track notes. Always search tools first for current schemas.",
+    "triggers": [
+      "close-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active Close connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `close`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `close`\n3. If connection is not ACTIVE, follow the returned auth link to complete Close API authentication\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. Create and Manage Leads",
+        "content": "**When to use**: User wants to create new leads or manage existing lead records\n\n**Tool sequence**:\n1. `CLOSE_CREATE_LEAD` - Create a new lead in Close [Required]\n\n**Key parameters**:\n- `name`: Lead/company name\n- `contacts`: Array of contact objects associated with the lead\n- `custom`: Custom field values as key-value pairs\n- `status_id`: Lead status ID\n\n**Pitfalls**:\n- Leads in Close represent companies/organizations, not individual people\n- Contacts are nested within leads; create the lead fi"
+      },
+      {
+        "title": "2. Log Calls",
+        "content": "**When to use**: User wants to log a phone call activity against a lead\n\n**Tool sequence**:\n1. `CLOSE_CREATE_CALL` - Log a call activity [Required]\n\n**Key parameters**:\n- `lead_id`: ID of the associated lead\n- `contact_id`: ID of the contact called\n- `direction`: 'outbound' or 'inbound'\n- `status`: Call status ('completed', 'no-answer', 'busy', etc.)\n- `duration`: Call duration in seconds\n- `note`: Call notes\n\n**Pitfalls**:\n- lead_id is required; calls must be associated with a lead\n- Duration i"
+      }
+    ]
+  },
+  {
+    "skillName": "coda-automation",
+    "description": "Automate Coda tasks via Rube MCP (Composio): manage docs, pages, tables, rows, formulas, permissions, and publishing. Always search tools first for current schemas.",
+    "triggers": [
+      "coda-automation"
+    ],
+    "strategies": [
+      {
+        "title": "Prerequisites",
+        "content": "- Rube MCP must be connected (RUBE_SEARCH_TOOLS available)\n- Active Coda connection via `RUBE_MANAGE_CONNECTIONS` with toolkit `coda`\n- Always call `RUBE_SEARCH_TOOLS` first to get current tool schemas"
+      },
+      {
+        "title": "Setup",
+        "content": "**Get Rube MCP**: Add `https://rube.app/mcp` as an MCP server in your client configuration. No API keys needed — just add the endpoint and it works.\n\n\n1. Verify Rube MCP is available by confirming `RUBE_SEARCH_TOOLS` responds\n2. Call `RUBE_MANAGE_CONNECTIONS` with toolkit `coda`\n3. If connection is not ACTIVE, follow the returned auth link to complete Coda authentication\n4. Confirm connection status shows ACTIVE before running any workflows"
+      },
+      {
+        "title": "1. Search and Browse Documents",
+        "content": "**When to use**: User wants to find, list, or inspect Coda documents\n\n**Tool sequence**:\n1. `CODA_SEARCH_DOCS` or `CODA_LIST_AVAILABLE_DOCS` - Find documents [Required]\n2. `CODA_RESOLVE_BROWSER_LINK` - Resolve a Coda URL to doc/page/table IDs [Alternative]\n3. `CODA_LIST_PAGES` - List pages within a document [Optional]\n4. `CODA_GET_A_PAGE` - Get specific page details [Optional]\n\n**Key parameters**:\n- `query`: Search term for finding documents\n- `isOwner`: Filter to docs owned by the user\n- `docId"
+      },
+      {
+        "title": "2. Work with Tables and Data",
+        "content": "**When to use**: User wants to read, write, or query table data\n\n**Tool sequence**:\n1. `CODA_LIST_TABLES` - List tables in a document [Prerequisite]\n2. `CODA_LIST_COLUMNS` - Get column definitions for a table [Prerequisite]\n3. `CODA_LIST_TABLE_ROWS` - List all rows with optional filters [Required]\n4. `CODA_SEARCH_ROW` - Search for specific rows by query [Alternative]\n5. `CODA_GET_A_ROW` - Get a specific row by ID [Optional]\n6. `CODA_UPSERT_ROWS` - Insert or update rows in a table [Optional]\n7. `"
+      }
+    ]
+  }
+]

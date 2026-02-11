@@ -3,6 +3,12 @@ import Stripe from "stripe";
 const secretKey = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+if (!secretKey) {
+  console.warn("[STRIPE] STRIPE_SECRET_KEY not found in environment");
+} else {
+  console.log("[STRIPE] Configured:", secretKey.substring(0, 20) + "...");
+}
+
 export const stripe = secretKey ? new Stripe(secretKey) : null;
 
 export function isStripeConfigured(): boolean {
