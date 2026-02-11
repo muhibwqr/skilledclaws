@@ -1,5 +1,6 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import type { HonoBindings, HonoVariables } from "@mastra/hono";
 import { MastraServer } from "@mastra/hono";
 import { mastra } from "./mastra/index.js";
@@ -9,6 +10,8 @@ import { registerGenerate } from "./routes/generate.js";
 import { registerWebhook } from "./routes/webhook.js";
 
 const app = new Hono<{ Bindings: HonoBindings; Variables: HonoVariables }>();
+
+app.use("*", cors({ origin: ["http://localhost:3000", "http://127.0.0.1:3000"], credentials: true }));
 
 const server = new MastraServer({ app, mastra });
 await server.init();

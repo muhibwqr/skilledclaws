@@ -1,7 +1,96 @@
 import archiver from "archiver";
+import { spawn } from "child_process";
+import path from "path";
+import { fileURLToPath } from "url";
 import { Readable, Writable } from "stream";
 import type { SkillBuildInput } from "./types";
 import { skillBuildInputSchema } from "./schema";
+import type { SkillBuildInputSchema } from "./schema";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/** Use C native zip builder when total content size exceeds this (bytes). */
+export const HUGE_INPUT_THRESHOLD = 512 * 1024;
+
+export interface ZipEntry {
+  path: string;
+  buffer: Buffer;
+}
+
+function getEntries(parsed: SkillBuildInputSchema, version: string): ZipEntry[] {
+  const entries: ZipEntry[] = [];
+  const skillMd = renderSkillMd(parsed, version);
+  entries.push({ path: "SKILL.md", buffer: Buffer.from(skillMd, "utf-8") });
+
+  const scriptExt = parsed.scriptLogic?.language === "python" ? "py" : "ts";
+  const scriptCode =
+    parsed.scriptLogic?.code ??
+    (parsed.scriptLogic?.language === "python"
+      ? "# Skill logic placeholder\n# Implement your skill here\n"
+      : "// Skill logic placeholder\n// Implement your skill here\n");
+  entries.push({ path: `scripts/main.${scriptExt}`, buffer: Buffer.from(scriptCode, "utf-8") });
+
+  for (let i = 0; i < parsed.strategies.length; i++) {
+    const s = parsed.strategies[i];
+    const safeName = s.title.replace(/[^a-z0-9-_]/gi, "_").toLowerCase();
+    entries.push({
+      path: `references/${safeName}.md`,
+      buffer: Buffer.from(`# ${s.title}\n\n${s.content}`, "utf-8"),
+    });
+  }
+  if (parsed.strategies.length === 0) {
+    entries.push({
+      path: "references/strategies.md",
+      buffer: Buffer.from("# Strategies\n\nAdd successful patterns here.", "utf-8"),
+    });
+  }
+
+  if (parsed.promptTemplates?.length) {
+    for (const pt of parsed.promptTemplates) {
+      entries.push({ path: `assets/prompts/${pt.id}.txt`, buffer: Buffer.from(pt.template, "utf-8") });
+    }
+    const promptsIndex = parsed.promptTemplates.map((p) => `- ${p.id}: ${p.name}`).join("\n");
+    entries.push({ path: "assets/prompts/README.md", buffer: Buffer.from(promptsIndex, "utf-8") });
+  } else {
+    entries.push({
+      path: "assets/prompts/README.md",
+      buffer: Buffer.from("# Prompt templates\n\nAdd .txt templates here.", "utf-8"),
+    });
+  }
+  entries.push({
+    path: "assets/schema.json",
+    buffer: Buffer.from(JSON.stringify({ skillName: parsed.skillName, version }, null, 2), "utf-8"),
+  });
+  return entries;
+}
+
+function getNativeZipPath(): string {
+  return path.join(__dirname, "..", "native", "zip_from_stdin");
+}
+
+async function buildZipBufferNative(entries: ZipEntry[]): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const bin = getNativeZipPath();
+    const child = spawn(bin, [], { stdio: ["pipe", "pipe", "pipe"] });
+    const outChunks: Buffer[] = [];
+    child.stdout.on("data", (chunk: Buffer) => outChunks.push(chunk));
+    child.stdout.on("end", () => {
+      child.on("close", (code) => {
+        if (code === 0) resolve(Buffer.concat(outChunks));
+        else reject(new Error(`zip_from_stdin exited ${code}`));
+      });
+    });
+    child.on("error", reject);
+    child.stderr.on("data", (d: Buffer) => process.stderr.write(d));
+    for (const e of entries) {
+      child.stdin.write(`${e.path}\n`);
+      child.stdin.write(`${e.buffer.length}\n`);
+      child.stdin.write(e.buffer);
+    }
+    child.stdin.write("DONE\n");
+    child.stdin.end();
+  });
+}
 
 const SKILL_MD_TEMPLATE = `# {{skillName}}
 
@@ -53,10 +142,24 @@ function renderSkillMd(input: SkillBuildInput, version: string): string {
 }
 
 export class SkillBuilder {
-  constructor(private readonly version = "1.0.0") {}
+  constructor(
+    private readonly version = "1.0.0",
+    private readonly hugeThreshold = HUGE_INPUT_THRESHOLD
+  ) {}
 
   async buildZipBuffer(input: SkillBuildInput): Promise<Buffer> {
     const parsed = skillBuildInputSchema.parse(input);
+    const entries = getEntries(parsed, this.version);
+    const totalSize = entries.reduce((sum, e) => sum + e.buffer.length, 0);
+
+    if (totalSize >= this.hugeThreshold) {
+      try {
+        return await buildZipBufferNative(entries);
+      } catch (err) {
+        console.warn("Native ZIP builder failed, using JS fallback:", err);
+      }
+    }
+
     const chunks: Buffer[] = [];
     const archive = archiver("zip", { zlib: { level: 9 } });
     const collector = new Writable({
@@ -66,51 +169,9 @@ export class SkillBuilder {
       },
     });
     archive.pipe(collector);
-
-    const skillMd = renderSkillMd(parsed, this.version);
-    archive.append(skillMd, { name: "SKILL.md" });
-
-    // scripts/
-    const scriptExt = parsed.scriptLogic?.language === "python" ? "py" : "ts";
-    const scriptCode =
-      parsed.scriptLogic?.code ??
-      (parsed.scriptLogic?.language === "python"
-        ? "# Skill logic placeholder\n# Implement your skill here\n"
-        : "// Skill logic placeholder\n// Implement your skill here\n");
-    archive.append(scriptCode, { name: `scripts/main.${scriptExt}` });
-
-    // references/
-    for (let i = 0; i < parsed.strategies.length; i++) {
-      const s = parsed.strategies[i];
-      const safeName = s.title.replace(/[^a-z0-9-_]/gi, "_").toLowerCase();
-      archive.append(`# ${s.title}\n\n${s.content}`, {
-        name: `references/${safeName}.md`,
-      });
+    for (const e of entries) {
+      archive.append(e.buffer, { name: e.path });
     }
-    if (parsed.strategies.length === 0) {
-      archive.append("# Strategies\n\nAdd successful patterns here.", {
-        name: "references/strategies.md",
-      });
-    }
-
-    // assets/
-    if (parsed.promptTemplates?.length) {
-      for (const pt of parsed.promptTemplates) {
-        archive.append(pt.template, { name: `assets/prompts/${pt.id}.txt` });
-      }
-      const promptsIndex = parsed.promptTemplates
-        .map((p) => `- ${p.id}: ${p.name}`)
-        .join("\n");
-      archive.append(promptsIndex, { name: "assets/prompts/README.md" });
-    } else {
-      archive.append("# Prompt templates\n\nAdd .txt templates here.", {
-        name: "assets/prompts/README.md",
-      });
-    }
-    archive.append(JSON.stringify({ skillName: parsed.skillName, version: this.version }, null, 2), {
-      name: "assets/schema.json",
-    });
-
     await archive.finalize();
 
     return new Promise((resolve, reject) => {
