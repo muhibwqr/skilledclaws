@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { SkillGraph3D } from "./SkillGraph3D";
 import { useSkillGraph3D, type SkillNode3D } from "@/hooks/useSkillGraph3D";
 import type { Skill } from "@/lib/api";
@@ -32,6 +32,8 @@ export const SkillGraph3DContainer = React.forwardRef<
     clearGraph,
   } = useSkillGraph3D();
 
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
   // Convert 3D nodes to graph format
   const graphNodes = useMemo(() => {
     return nodes.map((node) => ({
@@ -58,6 +60,7 @@ export const SkillGraph3DContainer = React.forwardRef<
 
   const handleNodeClick = useCallback(
     (skillId: string) => {
+      setSelectedNodeId(skillId);
       onSkillClick?.(skillId);
     },
     [onSkillClick]
@@ -126,16 +129,42 @@ export const SkillGraph3DContainer = React.forwardRef<
         />
       </div>
 
-      {/* Hover info */}
-      {hoveredNodeId && (
-        <div className="absolute bottom-6 right-6 z-10 bg-[#0a0a0a] border border-[#1a1a1a] text-[#f5f5f5] p-4 max-w-[300px]">
+      {/* Selected node info - shown on click in bottom left */}
+      {selectedNodeId && (
+        <div 
+          className="bg-[#0a0a0a] border border-[#1a1a1a] text-[#f5f5f5] p-4 max-w-[380px] pointer-events-auto"
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            left: '24px',
+            zIndex: 10000,
+          }}
+        >
           {(() => {
-            const node = nodes.find((n) => n.id === hoveredNodeId);
+            const node = nodes.find((n) => n.id === selectedNodeId);
             if (!node) return null;
             return (
               <>
-                <h3 className="text-sm font-medium mb-2">{node.skill.name}</h3>
-                <p className="text-xs text-[#a0a0a0] line-clamp-3">{node.skill.description}</p>
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-sm font-medium">{node.skill.name}</h3>
+                  <button
+                    onClick={() => setSelectedNodeId(null)}
+                    className="text-[#666666] hover:text-[#f5f5f5] text-xs"
+                  >
+                    ×
+                  </button>
+                </div>
+                <p className="text-xs text-[#a0a0a0] mb-3 leading-relaxed">{node.skill.description}</p>
+                {node.skill.triggers && node.skill.triggers.length > 0 && (
+                  <div className="pt-3 border-t border-[#1a1a1a]">
+                    <div className="text-[10px] uppercase tracking-wider text-[#666666] mb-2">Triggers</div>
+                    <div className="text-xs text-[#888888] space-y-1">
+                      {node.skill.triggers.slice(0, 3).map((trigger, i) => (
+                        <div key={i}>• {trigger}</div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             );
           })()}

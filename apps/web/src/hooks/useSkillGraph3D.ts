@@ -13,7 +13,8 @@ const SIMILARITY_THRESHOLD = 0.7;
 
 // Generate positions in 3D space
 function generatePosition(index: number, total: number): THREE.Vector3 {
-  const angle = (index / total) * Math.PI * 2;
+  if (total === 0) total = 1;
+  const angle = (index / Math.max(total, 1)) * Math.PI * 2;
   const radius = 10 + (index % 3) * 5;
   const height = (index % 5) * 3 - 6;
   
@@ -122,7 +123,9 @@ export function useSkillGraph3D() {
       setNodes((prev) => {
         const existingIds = new Set(prev.map(n => n.id));
         const uniqueNewNodes = newNodes.filter(n => !existingIds.has(n.id));
-        return [...prev, ...uniqueNewNodes];
+        const updated = [...prev, ...uniqueNewNodes];
+        console.log(`[useSkillGraph3D] Added ${uniqueNewNodes.length} nodes. Total: ${updated.length}`);
+        return updated;
       });
 
       // Calculate connections between all new nodes and existing nodes

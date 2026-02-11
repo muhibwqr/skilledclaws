@@ -48,8 +48,14 @@ export default function HomePage() {
         const data = await response.json();
         
         // Handle multiple sub-skills being generated
+        console.log("[FRONTEND] Response data:", data);
+        console.log("[FRONTEND] subSkills:", data.subSkills);
+        console.log("[FRONTEND] skillIds:", data.skillIds);
+        
+        let skillsToAdd: Skill[] = [];
+        
         if (data.subSkills && Array.isArray(data.subSkills) && data.subSkills.length > 0) {
-          const skills: Skill[] = data.subSkills.map((s: any) => ({
+          skillsToAdd = data.subSkills.map((s: any) => ({
             id: s.id,
             name: s.name,
             description: s.description,
@@ -59,16 +65,16 @@ export default function HomePage() {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           }));
-          
-          if (graphRef.current) {
-            // Add all sub-skills at once
-            await graphRef.current.addMultipleSkills(skills);
-          }
-          
-          alert(`Generated ${skills.length} sub-skills for "${data.mainSkill.name}"`);
+        } else if (data.skillIds && Array.isArray(data.skillIds) && data.skillIds.length > 0) {
+          // Fallback: fetch skills by IDs if subSkills array is empty but skillIds exist
+          console.log("[FRONTEND] Fetching skills by IDs:", data.skillIds);
+          const fetchedSkills = await Promise.all(
+            data.skillIds.map((id: string) => getSkillById(id))
+          );
+          skillsToAdd = fetchedSkills.filter((s): s is Skill => s !== null);
         } else if (data.skill && data.skill.id) {
           // Fallback: single skill (old format)
-          const skill: Skill = {
+          skillsToAdd = [{
             id: data.skill.id,
             name: data.skill.name,
             description: data.skill.description,
@@ -77,11 +83,53 @@ export default function HomePage() {
             source: "generated",
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-          };
+          }];
+        }
+        
+        // Add skills to graph and download files
+        if (skillsToAdd.length > 0) {
+          console.log("[FRONTEND] Adding skills to graph:", skillsToAdd.length);
           
           if (graphRef.current) {
-            await graphRef.current.addSkillNode(skill);
+            await graphRef.current.addMultipleSkills(skillsToAdd);
           }
+          
+          // Download each skill file
+          for (const skill of skillsToAdd) {
+            try {
+              const downloadResponse = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/skills/${skill.id}/download`
+              );
+              
+              if (downloadResponse.ok) {
+                const blob = await downloadResponse.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${skill.name.replace(/[^a-z0-9-_]/gi, "_")}_SKILL.md`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              } else {
+                // Fallback: create markdown manually
+                const skillMd = `# ${skill.name}\n\n${skill.description}\n\n## Triggers\n${skill.triggers.map(t => `- ${t}`).join('\n')}\n\n## Strategies\n${skill.strategies.map(s => `### ${s.title}\n\n${s.content}`).join('\n\n')}\n`;
+                const blob = new Blob([skillMd], { type: "text/markdown" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${skill.name.replace(/[^a-z0-9-_]/gi, "_")}_SKILL.md`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              }
+            } catch (err) {
+              console.warn(`Failed to download skill file for ${skill.name}:`, err);
+            }
+          }
+          
+          alert(`Generated ${skillsToAdd.length} sub-skills for "${data.mainSkill?.name || 'skill'}"`);
         }
       } catch (e) {
         console.error("Failed to generate skill:", e);

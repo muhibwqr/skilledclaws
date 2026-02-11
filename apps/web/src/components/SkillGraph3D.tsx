@@ -54,6 +54,7 @@ export function SkillGraph3D({ nodes, edges = [], onNodeClick, onNodeHover }: Sk
     // Camera
     const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
     camera.position.set(0, 0, 50);
+    camera.lookAt(0, 0, 0);
     cameraRef.current = camera;
 
     // Renderer
@@ -67,8 +68,9 @@ export function SkillGraph3D({ nodes, edges = [], onNodeClick, onNodeHover }: Sk
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.minDistance = 10;
-    controls.maxDistance = 200;
+    controls.minDistance = 5;
+    controls.maxDistance = 100;
+    controls.target.set(0, 0, 0);
     controlsRef.current = controls;
 
     // Ambient light
@@ -115,8 +117,12 @@ export function SkillGraph3D({ nodes, edges = [], onNodeClick, onNodeHover }: Sk
 
   // Update nodes and edges when they change
   useEffect(() => {
-    if (!sceneRef.current || !cameraRef.current) return;
+    if (!sceneRef.current || !cameraRef.current) {
+      console.log("[3D] Scene or camera not ready");
+      return;
+    }
 
+    console.log(`[3D] Updating nodes: ${nodes.length} nodes`);
     const scene = sceneRef.current;
     const camera = cameraRef.current;
 
@@ -141,7 +147,6 @@ export function SkillGraph3D({ nodes, edges = [], onNodeClick, onNodeHover }: Sk
       const geometry = new THREE.BufferGeometry();
       const positions = new Float32Array(nodes.length * 3);
       const colors = new Float32Array(nodes.length * 3);
-      const sizes = new Float32Array(nodes.length);
 
       nodes.forEach((node, i) => {
         positions[i * 3] = node.position.x;
@@ -151,56 +156,44 @@ export function SkillGraph3D({ nodes, edges = [], onNodeClick, onNodeHover }: Sk
         colors[i * 3] = node.color.r;
         colors[i * 3 + 1] = node.color.g;
         colors[i * 3 + 2] = node.color.b;
-
-        sizes[i] = 2.0;
       });
 
       geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-      geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
 
-      const pointMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-          time: { value: 0 },
-        },
-        vertexShader: `
-          attribute float size;
-          attribute vec3 color;
-          varying vec3 vColor;
-          void main() {
-            vColor = color;
-            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-            gl_PointSize = size * (300.0 / -mvPosition.z);
-            gl_Position = projectionMatrix * mvPosition;
-          }
-        `,
-        fragmentShader: `
-          varying vec3 vColor;
-          void main() {
-            float distanceToCenter = distance(gl_PointCoord, vec2(0.5));
-            float alpha = 1.0 - smoothstep(0.0, 0.5, distanceToCenter);
-            gl_FragColor = vec4(vColor, alpha);
-          }
-        `,
-        transparent: true,
+      const pointMaterial = new THREE.PointsMaterial({
+        size: 20.0,
         vertexColors: true,
+        transparent: false,
+        opacity: 1.0,
+        sizeAttenuation: false,
       });
 
       const points = new THREE.Points(geometry, pointMaterial);
       scene.add(points);
       pointsRef.current = points;
-
-      // Update time uniform in animation
-      const updateTime = () => {
-        if (pointMaterial.uniforms) {
-          pointMaterial.uniforms.time.value += 0.01;
-        }
-      };
-      const timeInterval = setInterval(updateTime, 16);
       
-      return () => {
-        clearInterval(timeInterval);
-      };
+      // Log node positions for debugging
+      console.log(`[3D] Added ${nodes.length} nodes to scene`);
+      if (nodes.length > 0) {
+        console.log(`[3D] First node position:`, {
+          id: nodes[0].id,
+          x: nodes[0].position.x,
+          y: nodes[0].position.y,
+          z: nodes[0].position.z,
+          color: `rgb(${Math.round(nodes[0].color.r * 255)}, ${Math.round(nodes[0].color.g * 255)}, ${Math.round(nodes[0].color.b * 255)})`
+        });
+      }
+      
+      // Center camera on nodes if we have them
+      if (nodes.length > 0 && cameraRef.current) {
+        const center = new THREE.Vector3();
+        nodes.forEach(node => center.add(node.position));
+        center.divideScalar(nodes.length);
+        controlsRef.current?.target.copy(center);
+        controlsRef.current?.update();
+      }
+
     }
   }, [nodes]);
 
@@ -280,11 +273,10 @@ export function SkillGraph3D({ nodes, edges = [], onNodeClick, onNodeHover }: Sk
 
   // Mouse interaction
   useEffect(() => {
-    if (!mountRef.current || !rendererRef.current || !cameraRef.current || !pointsRef.current) return;
+    if (!mountRef.current || !rendererRef.current || !cameraRef.current) return;
 
     const renderer = rendererRef.current;
     const camera = cameraRef.current;
-    const points = pointsRef.current;
 
     const handleMouseMove = (event: MouseEvent) => {
       if (!mountRef.current) return;
@@ -295,17 +287,19 @@ export function SkillGraph3D({ nodes, edges = [], onNodeClick, onNodeHover }: Sk
 
       raycasterRef.current.setFromCamera(mouseRef.current, camera);
 
-      const intersects = raycasterRef.current.intersectObject(points);
-      if (intersects.length > 0) {
-        const index = intersects[0].index ?? -1;
-        if (index !== hoveredNodeRef.current && index >= 0 && index < nodes.length) {
-          hoveredNodeRef.current = index;
-          onNodeHover?.(nodes[index].id);
-        }
-      } else {
-        if (hoveredNodeRef.current >= 0) {
-          hoveredNodeRef.current = -1;
-          onNodeHover?.(null);
+      if (pointsRef.current) {
+        const intersects = raycasterRef.current.intersectObject(pointsRef.current);
+        if (intersects.length > 0) {
+          const index = intersects[0].index ?? -1;
+          if (index !== hoveredNodeRef.current && index >= 0 && index < nodes.length) {
+            hoveredNodeRef.current = index;
+            onNodeHover?.(nodes[index].id);
+          }
+        } else {
+          if (hoveredNodeRef.current >= 0) {
+            hoveredNodeRef.current = -1;
+            onNodeHover?.(null);
+          }
         }
       }
     };
@@ -319,11 +313,13 @@ export function SkillGraph3D({ nodes, edges = [], onNodeClick, onNodeHover }: Sk
 
       raycasterRef.current.setFromCamera(mouseRef.current, camera);
 
-      const intersects = raycasterRef.current.intersectObject(points);
-      if (intersects.length > 0) {
-        const index = intersects[0].index ?? -1;
-        if (index >= 0 && index < nodes.length) {
-          onNodeClick?.(nodes[index].id);
+      if (pointsRef.current) {
+        const intersects = raycasterRef.current.intersectObject(pointsRef.current);
+        if (intersects.length > 0) {
+          const index = intersects[0].index ?? -1;
+          if (index >= 0 && index < nodes.length) {
+            onNodeClick?.(nodes[index].id);
+          }
         }
       }
     };

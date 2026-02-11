@@ -75,21 +75,30 @@ export function registerGenerate(app: Hono) {
             const skillMdBuffer = Buffer.from(skillMd, "utf-8");
 
             // Upload SKILL.md to Supabase storage
-            const key = skillKey(`generated-${Date.now()}`, subSkill.name).replace('.skills', '.md');
+            const key = skillKey(`generated-${Date.now()}-${Math.random()}`, subSkill.name).replace('.skills', '.md');
             await uploadSkillZip(key, skillMdBuffer, 'text/markdown');
 
             storedSkills.push({
               id: storedSkill.id,
               name: storedSkill.name,
               description: storedSkill.description,
-              triggers: storedSkill.triggers,
-              strategies: storedSkill.strategies,
+              triggers: storedSkill.triggers || [],
+              strategies: storedSkill.strategies || [],
               source: "generated",
             });
 
             console.log(`[GENERATE] Stored sub-skill: ${subSkill.name} (${storedSkill.id})`);
           } catch (subSkillError) {
-            console.warn(`[GENERATE] Failed to store sub-skill ${subSkill.name}:`, subSkillError);
+            console.error(`[GENERATE] Failed to store sub-skill ${subSkill.name}:`, subSkillError);
+            // Still add to response even if storage fails
+            storedSkills.push({
+              id: `temp-${Date.now()}-${Math.random()}`,
+              name: subSkill.name,
+              description: subSkill.description,
+              triggers: subSkill.triggers || [],
+              strategies: subSkill.strategies || [],
+              source: "generated",
+            });
           }
         }
       } else {
@@ -100,12 +109,14 @@ export function registerGenerate(app: Hono) {
             id: `mock-${Date.now()}-${Math.random()}`,
             name: subSkill.name,
             description: subSkill.description,
-            triggers: subSkill.triggers,
-            strategies: subSkill.strategies,
+            triggers: subSkill.triggers || [],
+            strategies: subSkill.strategies || [],
             source: "generated",
           });
         }
       }
+
+      console.log(`[GENERATE] Returning ${storedSkills.length} sub-skills`);
 
       return c.json({
         success: true,
