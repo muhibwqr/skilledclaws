@@ -67,7 +67,8 @@ const corsOrigins: string[] = [
   "http://127.0.0.1:3000",      // Legacy Next.js dev (alt)
   "http://localhost:5173",      // Vite dev server (new frontend)
   "http://127.0.0.1:5173",      // Vite dev server (alt)
-  process.env.FRONTEND_URL,     // Production frontend URL (set in deployment)
+  process.env.FRONTEND_URL,     // Production frontend URL (custom domain or Vercel domain)
+  process.env.FRONTEND_VERCEL_URL, // Optional: Vercel domain (if different from custom domain)
 ].filter((origin): origin is string => Boolean(origin)); // Remove undefined values
 
 app.use("*", cors({ origin: corsOrigins, credentials: true }));
