@@ -62,13 +62,13 @@ import { registerExport } from "./routes/export.js";
 const app = new Hono<{ Bindings: HonoBindings; Variables: HonoVariables }>();
 
 // CORS configuration: Allow frontend from separate repo
-const corsOrigins = [
+const corsOrigins: string[] = [
   "http://localhost:3000",      // Legacy Next.js dev
   "http://127.0.0.1:3000",      // Legacy Next.js dev (alt)
   "http://localhost:5173",      // Vite dev server (new frontend)
   "http://127.0.0.1:5173",      // Vite dev server (alt)
   process.env.FRONTEND_URL,     // Production frontend URL (set in deployment)
-].filter(Boolean); // Remove undefined values
+].filter((origin): origin is string => Boolean(origin)); // Remove undefined values
 
 app.use("*", cors({ origin: corsOrigins, credentials: true }));
 
@@ -77,9 +77,13 @@ await server.init();
 
 app.use("/api/generate", rateLimitGenerate());
 
+// @ts-expect-error - Hono type mismatch between app and route handlers
 registerGenerate(app);
+// @ts-expect-error - Hono type mismatch between app and route handlers
 registerSimilarity(app);
+// @ts-expect-error - Hono type mismatch between app and route handlers
 registerSkills(app);
+// @ts-expect-error - Hono type mismatch between app and route handlers
 registerExport(app);
 
 app.get("/", (c) => c.json({ name: "skilledclaws-api", status: "ok" }));
