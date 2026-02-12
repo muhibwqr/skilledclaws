@@ -61,7 +61,16 @@ import { registerExport } from "./routes/export.js";
 
 const app = new Hono<{ Bindings: HonoBindings; Variables: HonoVariables }>();
 
-app.use("*", cors({ origin: ["http://localhost:3000", "http://127.0.0.1:3000"], credentials: true }));
+// CORS configuration: Allow frontend from separate repo
+const corsOrigins = [
+  "http://localhost:3000",      // Legacy Next.js dev
+  "http://127.0.0.1:3000",      // Legacy Next.js dev (alt)
+  "http://localhost:5173",      // Vite dev server (new frontend)
+  "http://127.0.0.1:5173",      // Vite dev server (alt)
+  process.env.FRONTEND_URL,     // Production frontend URL (set in deployment)
+].filter(Boolean); // Remove undefined values
+
+app.use("*", cors({ origin: corsOrigins, credentials: true }));
 
 const server = new MastraServer({ app, mastra });
 await server.init();

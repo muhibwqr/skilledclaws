@@ -118,10 +118,15 @@ export function registerGenerate(app: Hono) {
 
       console.log(`[GENERATE] Returning ${storedSkills.length} sub-skills`);
 
+      // Ensure mainSkill is an object with name property (frontend expects this)
+      const mainSkillResponse = breakdown.mainSkill && typeof breakdown.mainSkill === 'object' 
+        ? breakdown.mainSkill 
+        : { name: skillName, description: `Skill pack for ${skillName}` };
+
       return c.json({
         success: true,
-        mainSkill: breakdown.mainSkill,
-        subSkills: storedSkills,
+        mainSkill: mainSkillResponse, // Object with { name, description }
+        subSkills: storedSkills, // Array of objects with { id, name, description, triggers, strategies, source }
         skillIds,
       });
     } catch (error) {

@@ -1,34 +1,50 @@
-# SkilledClaws
+# SkilledClaws API
 
-Monorepo for SkilledClaws: map-based skill discovery and $3 `.skills` file delivery for Clawdbot.
+Backend API for SkilledClaws: AI-powered skill generation and `.skills` file delivery for Clawdbot.
+
+> **Note:** The frontend is now in a [separate repository](https://github.com/muhibwqr/skilledclawsfrontend). See [FRONTEND_CONNECTION.md](./FRONTEND_CONNECTION.md) for setup instructions.
 
 ## Stack
 
 - **Monorepo:** pnpm + Turborepo
-- **Web:** Next.js 14 (App Router), Tailwind, Mapbox GL (grey heatmap)
-- **API:** Hono + Mastra (agents), Upstash Redis (rate limit), Stripe, Cloudflare R2
-- **Shared:** `@skilledclaws/ui`, `@skilledclaws/skills-engine`, `@skilledclaws/ts-config`
+- **API:** Hono + Mastra (agents), OpenAI, Supabase, Upstash Redis (rate limit), Stripe, Cloudflare R2
+- **Shared:** `@skilledclaws/skills-engine`, `@skilledclaws/ts-config`
 
 ## Quick start
 
 ```bash
 pnpm install
-pnpm dev
+pnpm --filter @skilledclaws/api dev
 ```
 
-- **Web:** http://localhost:3000  
 - **API:** http://localhost:3001  
 
 ## CORS
 
-The API allows `http://localhost:3000` and `http://127.0.0.1:3000` by default. For production, set `CORS_ORIGIN` and update the API to use it in the `cors()` middleware.
+The API allows requests from:
+- `http://localhost:5173` (Vite dev server - new frontend)
+- `http://localhost:3000` (legacy Next.js)
+- Production frontend URL (set via `FRONTEND_URL` environment variable)
+
+For production, set `FRONTEND_URL` in your deployment platform (e.g., Railway) to your frontend domain.
 
 ## Environment
 
-Copy `.env.example` and set:
+Copy `.env.example` and set in `apps/api/.env.local` or root `.env`:
 
-- **Web** (`apps/web/.env.local` or root): `NEXT_PUBLIC_MAPBOX_TOKEN`, `NEXT_PUBLIC_API_URL` (e.g. `http://localhost:3001`), `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
-- **API** (`apps/api/.env.local` or root): `OPENAI_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CLOUDFLARE_R2_*`, optional `UPSTASH_REDIS_*` (rate limiting), optional `ANTHROPIC_API_KEY` (if using Claude for synthesis)
+**Required:**
+- `OPENAI_API_KEY` - OpenAI API key for embeddings and AI generation
+- `SUPABASE_URL` - Supabase project URL
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key
+- `SUPABASE_STORAGE_BUCKET` - Supabase storage bucket name (default: "skills")
+
+**Optional:**
+- `FRONTEND_URL` - Production frontend URL for CORS (e.g., `https://your-app.vercel.app`)
+- `STRIPE_SECRET_KEY` - Stripe secret key for payments
+- `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
+- `UPSTASH_REDIS_*` - Redis connection for rate limiting
+- `ANTHROPIC_API_KEY` - Claude API key (if using Claude for synthesis)
+- `CLOUDFLARE_R2_*` - Cloudflare R2 storage (alternative to Supabase)
 
 ## Stripe webhook (local)
 
@@ -55,14 +71,55 @@ If the C binary is missing or fails, the engine falls back to the JS (archiver) 
 
 | Command     | Description                |
 |------------|----------------------------|
-| `pnpm dev` | Run web + API in dev       |
-| `pnpm build` | Build all apps/packages |
-| `pnpm lint` | Lint                      |
-| `pnpm type-check` | Type-check           |
+| `pnpm --filter @skilledclaws/api dev` | Run API in dev mode |
+| `pnpm build` | Build all packages |
+| `pnpm lint` | Lint all packages |
+| `pnpm type-check` | Type-check all packages |
 
-## MVP flow
+## API Endpoints
 
-1. **Search:** User enters up to 5 words → rate-limited search → Mastra agent returns trends + locations → map heatmap and trend cards update.
-2. **Checkout:** User clicks “Generate for $3” → Stripe Checkout → success redirect to `/success?session_id=...`.
-3. **Webhook:** Stripe `checkout.session.completed` → synthesis agent builds skill content → ZIP built with `@skilledclaws/skills-engine` → upload to R2 → presigned URL stored.
-4. **Download:** Success page polls `GET /api/generate/download?session_id=...` → user gets download link when ready.
+### POST /api/generate
+Generate skills from a single word. Returns `mainSkill` and `subSkills` array.
+
+**Request:**
+```json
+{ "skillName": "plumbing" }
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "mainSkill": { "name": "plumbing", "description": "..." },
+  "subSkills": [
+    { "id": "...", "name": "water leak repair", ... },
+    ...
+  ],
+  "skillIds": ["uuid1", "uuid2", ...]
+}
+```
+
+### GET /api/skills
+List all skills with pagination. Query params: `limit`, `offset`, `source`.
+
+### GET /api/skills/:id/download
+Download skill file as `.md`.
+
+### POST /api/similarity/search
+Search skills by text query.
+
+### GET /api/similarity/:skillId
+Find similar skills by skill ID.
+
+See [FRONTEND_CONNECTION.md](./FRONTEND_CONNECTION.md) for complete API documentation and frontend setup.
+
+## Deployment
+
+This API is designed to be deployed separately from the frontend:
+
+1. **Deploy API:** Railway, Render, Fly.io, or similar
+2. **Deploy Frontend:** Vercel, Netlify, or similar (see [skilledclawsfrontend](https://github.com/muhibwqr/skilledclawsfrontend))
+3. **Connect:** Set `VITE_API_URL` in frontend to point to your API URL
+4. **CORS:** Set `FRONTEND_URL` in API to allow frontend domain
+
+See [FRONTEND_CONNECTION.md](./FRONTEND_CONNECTION.md) for detailed deployment instructions.
