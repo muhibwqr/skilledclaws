@@ -5,13 +5,13 @@ import { loadFewShotExamples, getFewShotExamplesPrompt } from "../../examples/lo
 const subSkillSchema = z.object({
   name: z.string(),
   description: z.string(),
-  triggers: z.array(z.string()),
+  triggers: z.array(z.string()).min(5).max(8), // Enforce 5-8 triggers
   strategies: z.array(
     z.object({
       title: z.string(),
-      content: z.string(),
+      content: z.string().min(2500), // Enforce minimum ~500 words (roughly 2500 chars)
     })
-  ),
+  ).min(4).max(6), // Enforce 4-6 strategies per sub-skill
 });
 
 const skillBreakdownSchema = z.object({
@@ -101,6 +101,12 @@ QUALITY STANDARDS:
 - Match the depth and quality of awesome-claude-skills examples
 - Include Rube MCP instructions when dealing with API automation or external service integrations
 
+CRITICAL: You MUST follow these requirements exactly:
+- Generate 4-6 strategies per sub-skill (NOT 2, NOT 3 - MUST be 4-6)
+- Each strategy MUST be 500-1200 words minimum (count words, not characters)
+- Include ALL required sections: Prerequisites, Setup, Core Workflows (3-5 workflows), Error Points, Troubleshooting
+- Each workflow MUST have: Title, When to use, Tool sequence, Key parameters, Pitfalls (5-8), Error Points, Example scenarios (3-5), Advanced tips (3-5), Troubleshooting (3-5 issues)
+
 Example for "plumbing":
 - Sub-skill: "water leak repair"
   Description: "Comprehensive guide to diagnosing and fixing water leaks in pipes, fixtures, and appliances. Covers leak identification techniques, repair method selection, material requirements, and preventive measures. Essential for maintaining plumbing systems and preventing water damage."
@@ -108,11 +114,19 @@ Example for "plumbing":
   Strategies: [
     {
       "title": "Leak Detection and Assessment",
-      "content": "Detailed 300-800 word guide covering leak detection methods, assessment techniques, severity evaluation, and initial response procedures..."
+      "content": "Detailed 500-1200 word guide covering leak detection methods, assessment techniques, severity evaluation, and initial response procedures. MUST include: Prerequisites section with tools and materials, Setup section with step-by-step instructions, 3-5 Core Workflows each with When to use, Tool sequence, Key parameters, 5-8 Pitfalls, Error Points with common errors and resolutions, 3-5 Example scenarios, 3-5 Advanced tips, and 3-5 Troubleshooting issues..."
     },
     {
       "title": "Repair Methods and Techniques",
-      "content": "Comprehensive 300-800 word guide covering various repair methods, tool selection, material requirements, step-by-step procedures..."
+      "content": "Comprehensive 500-1200 word guide covering various repair methods, tool selection, material requirements, step-by-step procedures. MUST include: Prerequisites, Setup, 3-5 Core Workflows, Error Points, Troubleshooting..."
+    },
+    {
+      "title": "Preventive Maintenance",
+      "content": "500-1200 word guide on preventing leaks through regular maintenance..."
+    },
+    {
+      "title": "Emergency Response Procedures",
+      "content": "500-1200 word guide on immediate actions for major leaks..."
     }
   ]
 
@@ -130,15 +144,33 @@ export async function breakDownSkill(skillName: string): Promise<z.infer<typeof 
 
 ---
 
-Break down the skill or trade "${skillName}" into 3-8 specific, actionable sub-skills. CRITICAL: You MUST generate at least 3 sub-skills. Each sub-skill must be as detailed, comprehensive, and lengthy as the examples above. Each strategy should be 500-1200 words minimum, with comprehensive workflows, tool sequences, parameters, pitfalls, error points, troubleshooting, examples, and advanced tips.
+Break down the skill or trade "${skillName}" into 3-8 specific, actionable sub-skills.
 
-Match the structure, depth, and quality of the examples provided.
+CRITICAL REQUIREMENTS - YOU MUST FOLLOW THESE EXACTLY:
+1. Generate 4-6 sub-skills (minimum 3, but prefer 4-6 for better coverage)
+2. Each sub-skill MUST have exactly 4-6 strategies (NOT 2, NOT 3 - MUST be 4-6 strategies per sub-skill)
+3. Each strategy MUST be 500-1200 words minimum (count actual words - verify before returning)
+4. Each strategy MUST include ALL required sections:
+   - Prerequisites (if applicable) with tools, accounts, setup requirements
+   - Setup (if applicable) with step-by-step instructions, configuration, verification
+   - Core Workflows (3-5 workflows, each with: Title, When to use, Tool sequence, Key parameters, Pitfalls (5-8), Error Points, Example scenarios (3-5), Advanced tips (3-5), Troubleshooting (3-5 issues))
+   - Error Points section for each workflow (common errors, causes, resolutions, prevention)
+   - Troubleshooting section with 3-5 common issues and solutions
 
-IMPORTANT: 
-- Always generate at least 3 sub-skills. If you cannot think of 3 distinct sub-skills, break down the skill more granularly or think of different aspects (e.g., setup, core workflows, troubleshooting, advanced techniques).
-- If the skill involves API automation, external services, or integrations, include Rube MCP setup instructions in prerequisites and setup sections.
-- Include detailed error points and troubleshooting sections for each workflow.
-- Make content longer and more comprehensive than the examples - aim for 500-1200 words per strategy.`;
+QUALITY VERIFICATION CHECKLIST - Before returning, verify:
+✓ Each sub-skill has 4-6 strategies (count them)
+✓ Each strategy has 500-1200 words (count words, not characters)
+✓ Each strategy includes all required sections
+✓ Each workflow has 3-5 workflows with full details
+✓ Each workflow has 5-8 pitfalls with solutions
+✓ Each workflow has error points with resolutions
+✓ Each workflow has 3-5 example scenarios
+✓ Each workflow has 3-5 advanced tips
+✓ Each workflow has 3-5 troubleshooting issues
+
+If the skill involves API automation, external services, or integrations, include Rube MCP setup instructions in prerequisites and setup sections.
+
+Match the structure, depth, and quality of the examples provided above. The examples show the MINIMUM quality - your output should match or exceed them in length and detail.`;
 
   const result = await skillBreakdownAgent.generate(prompt, {
     structuredOutput: {
