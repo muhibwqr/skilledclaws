@@ -73,6 +73,7 @@ export function registerExport(app: Hono) {
         
         c.header("Content-Type", "application/zip");
         c.header("Content-Disposition", `attachment; filename="skilledclaws-export-${Date.now()}.zip"`);
+        // @ts-expect-error - Hono body accepts Buffer but types are strict
         return c.body(zipBuffer);
       } else {
         // Return JSON

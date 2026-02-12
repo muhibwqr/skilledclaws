@@ -158,7 +158,7 @@ export function getFewShotExamplesPrompt(
   const examplesText = selected
     .map((ex, idx) => {
       const strategies = ex.strategies
-        .map((s) => `- **${s.title}**: ${s.content.substring(0, 300)}${s.content.length > 300 ? "..." : ""}`)
+        .map((s: { title: string; content: string }) => `- **${s.title}**: ${s.content.substring(0, 300)}${s.content.length > 300 ? "..." : ""}`)
         .join("\n");
 
       return `Example ${idx + 1}:

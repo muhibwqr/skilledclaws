@@ -3,9 +3,9 @@ import { spawn } from "child_process";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Readable, Writable } from "stream";
-import type { SkillBuildInput } from "./types";
-import { skillBuildInputSchema } from "./schema";
-import type { SkillBuildInputSchema } from "./schema";
+import type { SkillBuildInput } from "./types.js";
+import { skillBuildInputSchema } from "./schema.js";
+import type { SkillBuildInputSchema } from "./schema.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -49,7 +49,7 @@ function getEntries(parsed: SkillBuildInputSchema, version: string): ZipEntry[] 
     for (const pt of parsed.promptTemplates) {
       entries.push({ path: `assets/prompts/${pt.id}.txt`, buffer: Buffer.from(pt.template, "utf-8") });
     }
-    const promptsIndex = parsed.promptTemplates.map((p) => `- ${p.id}: ${p.name}`).join("\n");
+    const promptsIndex = parsed.promptTemplates.map((p: { id: string; name: string }) => `- ${p.id}: ${p.name}`).join("\n");
     entries.push({ path: "assets/prompts/README.md", buffer: Buffer.from(promptsIndex, "utf-8") });
   } else {
     entries.push({
@@ -132,10 +132,10 @@ export function renderSkillMd(input: SkillBuildInput, version: string): string {
   lines.push("");
 
   // Prerequisites section (if applicable)
-  if (input.strategies.some((s) => s.title.toLowerCase().includes("prerequisite"))) {
+  if (input.strategies.some((s: { title: string }) => s.title.toLowerCase().includes("prerequisite"))) {
     lines.push("## Prerequisites");
     lines.push("");
-    const prereq = input.strategies.find((s) => s.title.toLowerCase().includes("prerequisite"));
+    const prereq = input.strategies.find((s: { title: string }) => s.title.toLowerCase().includes("prerequisite"));
     if (prereq) {
       lines.push(prereq.content);
       lines.push("");
@@ -143,10 +143,10 @@ export function renderSkillMd(input: SkillBuildInput, version: string): string {
   }
 
   // Setup section (if applicable)
-  if (input.strategies.some((s) => s.title.toLowerCase().includes("setup"))) {
+  if (input.strategies.some((s: { title: string }) => s.title.toLowerCase().includes("setup"))) {
     lines.push("## Setup");
     lines.push("");
-    const setup = input.strategies.find((s) => s.title.toLowerCase().includes("setup"));
+    const setup = input.strategies.find((s: { title: string }) => s.title.toLowerCase().includes("setup"));
     if (setup) {
       lines.push(setup.content);
       lines.push("");
@@ -155,7 +155,7 @@ export function renderSkillMd(input: SkillBuildInput, version: string): string {
 
   // Core Workflows section
   const workflows = input.strategies.filter(
-    (s) => !s.title.toLowerCase().includes("prerequisite") && !s.title.toLowerCase().includes("setup")
+    (s: { title: string }) => !s.title.toLowerCase().includes("prerequisite") && !s.title.toLowerCase().includes("setup")
   );
 
   if (workflows.length > 0) {

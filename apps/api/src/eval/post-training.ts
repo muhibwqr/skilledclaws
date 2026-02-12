@@ -1,4 +1,4 @@
-import { skillSynthesisAgent, skillBuilderAgent } from "../mastra/agents/index.js";
+import { skillSynthesisAgent } from "../mastra/agents/index.js";
 import type { SkillBuildInput } from "@skilledclaws/skills-engine";
 
 interface EvaluationResult {
@@ -36,7 +36,7 @@ export async function evaluateSkillGeneration(skillName: string, output: SkillBu
 
   // Check strategy content quality
   if (output.strategies) {
-    const shortStrategies = output.strategies.filter(s => !s.content || s.content.length < 100);
+    const shortStrategies = output.strategies.filter((s: { content?: string }) => !s.content || s.content.length < 100);
     if (shortStrategies.length > 0) {
       issues.push(`${shortStrategies.length} strategy(ies) too short`);
       quality -= 0.1 * shortStrategies.length;
