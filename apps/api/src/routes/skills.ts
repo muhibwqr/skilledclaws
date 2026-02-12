@@ -38,41 +38,6 @@ export function registerSkills(app: Hono) {
       );
     }
   });
-  // Download skill file
-  app.get("/api/skills/:id/download", async (c) => {
-    const id = c.req.param("id");
-    
-    try {
-      const skill = await getSkillById(id);
-      if (!skill) {
-        return c.json({ error: "Skill not found" }, 404);
-      }
-
-      const skillMd = renderSkillMd(
-        {
-          skillName: skill.name,
-          description: skill.description,
-          triggers: skill.triggers,
-          strategies: skill.strategies,
-          promptTemplates: skill.prompt_templates || [],
-        },
-        "1.0.0"
-      );
-
-      c.header("Content-Type", "text/markdown");
-      c.header("Content-Disposition", `attachment; filename="${skill.name.replace(/[^a-z0-9-_]/gi, "_")}_SKILL.md"`);
-      return c.text(skillMd);
-    } catch (error) {
-      console.error("[SKILLS] Error downloading skill:", error);
-      return c.json(
-        {
-          error: "Failed to download skill",
-          message: error instanceof Error ? error.message : "Unknown error",
-        },
-        500
-      );
-    }
-  });
   // List all skills with pagination
   app.get("/api/skills", async (c) => {
     const limit = Number(c.req.query("limit")) || 100;
