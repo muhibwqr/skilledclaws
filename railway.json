@@ -2,10 +2,10 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "pnpm install && pnpm --filter @skilledclaws/api build"
+    "buildCommand": "pnpm install && cd apps/api && pnpm build && ls -la dist/ && test -f dist/index.js || (echo 'BUILD FAILED: dist/index.js not found' && exit 1)"
   },
   "deploy": {
-    "startCommand": "node apps/api/dist/index.js",
+    "startCommand": "cd apps/api && node dist/index.js",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
