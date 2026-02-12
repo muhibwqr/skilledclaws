@@ -3,11 +3,9 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "skipLibCheck": true,
-    "noEmit": false,
-    "allowImportingTsExtensions": false
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "skipLibCheck": true
   },
   "include": ["src"],
   "exclude": ["src/**/*.test.ts", "src/test-*.ts"]
